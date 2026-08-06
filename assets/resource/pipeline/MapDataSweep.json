@@ -1,0 +1,97 @@
+{
+    "MapDataSweepMain": {
+        "desc": "地图数据环扫任务入口",
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "MapDataSweepInit"
+        ]
+    },
+    "MapDataSweepInit": {
+        "desc": "重置采样计划并创建输出目录",
+        "pre_delay": 0,
+        "action": "Custom",
+        "custom_action": "MapDataSweepInitAction",
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "MapDataSweepStep",
+            "MapDataSweepEnd"
+        ]
+    },
+    "MapDataSweepStep": {
+        "desc": "读取第 k 步目标朝向并闭环转向",
+        "recognition": "Custom",
+        "custom_recognition": "MapDataSweepStepRecognition",
+        "custom_recognition_param": {
+            "mode": "remaining"
+        },
+        "pre_delay": 0,
+        "action": "Custom",
+        "custom_action": "MapDataSweepTowardAction",
+        "custom_action_param": {
+            "rotation_threshold": 2
+        },
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "MapDataSweepWaitBeforeMove"
+        ]
+    },
+    "MapDataSweepWaitBeforeMove": {
+        "desc": "转向完成后等待 1000ms 再前进",
+        "pre_delay": 1000,
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "MapDataSweepMoveForward"
+        ]
+    },
+    "MapDataSweepMoveForward": {
+        "desc": "按 W 前进 200ms",
+        "pre_delay": 0,
+        "action": "Custom",
+        "custom_action": "CharacterControllerForwardAxisAction",
+        "custom_action_param": {
+            "axis": 2
+        },
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "MapDataSweepWaitBeforeSnapshot"
+        ]
+    },
+    "MapDataSweepWaitBeforeSnapshot": {
+        "desc": "移动完成后等待 500ms 再采样",
+        "pre_delay": 500,
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "MapDataSweepSnapshot"
+        ]
+    },
+    "MapDataSweepSnapshot": {
+        "desc": "推断位置与角色朝向并保存标注截图",
+        "pre_delay": 0,
+        "action": "Custom",
+        "custom_action": "MapDataSweepSnapshotAction",
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "MapDataSweepStep",
+            "MapDataSweepEnd"
+        ]
+    },
+    "MapDataSweepEnd": {
+        "desc": "八步环扫全部完成",
+        "recognition": "Custom",
+        "custom_recognition": "MapDataSweepStepRecognition",
+        "custom_recognition_param": {
+            "mode": "done"
+        },
+        "pre_delay": 0,
+        "post_delay": 0,
+        "rate_limit": 0
+    }
+}

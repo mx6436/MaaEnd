@@ -1,0 +1,19 @@
+{
+    "task": [
+        {
+            "name": "MapDataSweep",
+            "label": "$task.MapDataSweep.label",
+            "entry": "MapDataSweepMain",
+            "description": "$task.MapDataSweep.description",
+            "controller": [
+                "Linux-Gamescope",
+                "Linux-ScreenCast",
+                "Linux-Wlrotos",
+                "Win32-Front"
+            ],
+            "group": [
+                "other_menu"
+            ]
+        }
+    ]
+}
