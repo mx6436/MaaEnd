@@ -142,6 +142,9 @@ void writeJsonDetail(MaaStringBuffer* out_detail, const json::value& payload)
 
 // —— 采集与定位 ——
 
+// AgentServer 环境下 MaaTaskerGetController 每调用一次就会销毁上一个 RemoteController
+// 并新建一个，返回的指针在下一次调用前即失效。因此每个动作生命周期内只允许调用一次，
+// 之后所有用途都必须复用同一个指针。
 MaaController* getController(MaaContext* context)
 {
     return context == nullptr ? nullptr : MaaTaskerGetController(MaaContextGetTasker(context));
@@ -153,9 +156,8 @@ bool isTaskStopping(MaaContext* context)
 }
 
 // 截一帧全屏。失败路径 LogError。
-bool captureFrame(MaaContext* context, cv::Mat* out_frame)
+bool captureFrame(MaaController* controller, cv::Mat* out_frame)
 {
-    MaaController* controller = getController(context);
     if (controller == nullptr) {
         LogError << "CameraAngleSweep: controller is null";
         return false;
@@ -168,12 +170,13 @@ bool captureFrame(MaaContext* context, cv::Mat* out_frame)
         LogError << "CameraAngleSweep: cached image is empty";
         return false;
     }
-    *out_frame = to_mat(captured.Get());
-    return !out_frame->empty();
+    *out_frame = to_mat(captured.Get()).clone(); // to_mat 是零拷贝的壳，必须 clone 出来，
+                                                 // 否则缓冲区销毁后带出去的是悬垂内存
+    return true;
 }
 
 // 在给定帧上定位（共享 MapLocator 单例），成功时输出位置。
-bool locateOnFrame(MaaContext* context, const cv::Mat& frame, maplocator::MapPosition* out_position)
+bool locateOnFrame(MaaController* controller, const cv::Mat& frame, maplocator::MapPosition* out_position)
 {
     auto locator = maplocator::getOrInitLocator();
     if (!locator) {
@@ -182,7 +185,7 @@ bool locateOnFrame(MaaContext* context, const cv::Mat& frame, maplocator::MapPos
     }
 
     cv::Mat minimap;
-    const bool adb_roi = mapnavigator::IsAdbLikeControllerType(mapnavigator::DetectControllerType(getController(context)));
+    const bool adb_roi = mapnavigator::IsAdbLikeControllerType(mapnavigator::DetectControllerType(controller));
     if (!maplocator::TryExtractMinimap(frame, adb_roi, &minimap)) {
         LogError << "CameraAngleSweep: minimap ROI extraction failed";
         return false;
@@ -230,11 +233,14 @@ bool turnViewDelta(mapnavigator::ActionWrapper& wrapper, double heading_delta)
 // 超时按正常结束处理（返回 true），与 Go 侧 MapTrackerToward 语义一致。
 bool towardHeading(MaaContext* context, double target_heading, double threshold_deg)
 {
+    // ActionWrapper 构造时取的 RemoteController 是本动作内唯一一次 MaaTaskerGetController，
+    // 之后 capture/locate 一律复用 wrapper.GetCtrl()，避免旧指针被下一次调用销毁。
     mapnavigator::ActionWrapper wrapper(context);
     if (!wrapper.is_supported()) {
         LogError << "CameraAngleSweep: input backend unsupported" << VAR(wrapper.unsupported_reason());
         return false;
     }
+    MaaController* controller = wrapper.GetCtrl();
 
     auto stopMovement = [&wrapper]() {
         wrapper.SetMovementStateSync(false, false, false, false, 0);
@@ -256,12 +262,18 @@ bool towardHeading(MaaContext* context, double target_heading, double threshold_
             return false;
         }
 
+        // 超时检查放在循环开头：capture/locate 持续失败时也要能退出，而不是无限重试。
+        if (std::chrono::steady_clock::now() >= deadline) {
+            LogWarn << "CameraAngleSweep: toward timeout, ending orientation adjustment" << VAR(kTowardTimeoutMs);
+            break;
+        }
+
         cv::Mat frame;
-        if (!captureFrame(context, &frame)) {
+        if (!captureFrame(controller, &frame)) {
             continue;
         }
         maplocator::MapPosition position;
-        if (!locateOnFrame(context, frame, &position)) {
+        if (!locateOnFrame(controller, frame, &position)) {
             continue;
         }
 
@@ -288,11 +300,6 @@ bool towardHeading(MaaContext* context, double target_heading, double threshold_
 
         // 等待姿态稳定后再做下一次测量。
         mapnavigator::utils::SleepFor(kSettleWaitMs);
-
-        if (std::chrono::steady_clock::now() >= deadline) {
-            LogWarn << "CameraAngleSweep: toward timeout, ending orientation adjustment" << VAR(kTowardTimeoutMs);
-            break;
-        }
     }
 
     stopMovement();
@@ -402,13 +409,15 @@ MaaBool MAA_CALL CameraAngleSweepSnapshotActionRun(
     [[maybe_unused]] const MaaRect* box,
     [[maybe_unused]] void* trans_arg)
 {
-    // capture 与 locate 用同一帧，保证保存的截图就是被推断的那一帧。
+    // 本动作内唯一一次 MaaTaskerGetController，capture 与 locate 复用同一指针；
+    // 两者用同一帧，保证保存的截图就是被推断的那一帧。
+    MaaController* controller = getController(context);
     cv::Mat frame;
-    if (!captureFrame(context, &frame)) {
+    if (!captureFrame(controller, &frame)) {
         return kMaaFalse;
     }
     maplocator::MapPosition position;
-    if (!locateOnFrame(context, frame, &position)) {
+    if (!locateOnFrame(controller, frame, &position)) {
         LogError << "CameraAngleSweep: inference failed, aborting sweep";
         return kMaaFalse;
     }
