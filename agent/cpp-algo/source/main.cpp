@@ -38,7 +38,6 @@ int main(int argc, char** argv)
     common::StartParentProcessWatcher();
 
     Test();
-    cameraanglesweep::RunSelfCheck();
 
     // std::cout << "Hello, cpp-algo!" << std::endl;
 

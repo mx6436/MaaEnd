@@ -20,7 +20,7 @@
     "task.AeroSalvage.label": "🎈浮空回收",
     "task.AeroSalvage.description": "自动放置所有气球并保持平衡。请在浮空回收界面内开启任务",
     "task.CameraAngleSweep.label": "🗺️相机角度环扫",
-    "task.CameraAngleSweep.description": "启动后原地依次面向八个方向（各叠加随机偏移），每步前进后推断位置与朝向并保存标注截图",
+    "task.CameraAngleSweep.description": "启动后原地依次面向十二个方向（各叠加随机偏移），每步前进后推断位置与朝向并保存标注截图",
     "task.EnvironmentMonitoring.description": "自动完成环境监测任务",
     "task.EnvironmentMonitoring.label": "🌿环境监测",
     "task.EnvironmentMonitoring.route.AncientTree.failed": "<span style=\"color: red; font-weight: bold;\">古树任务失败</span>",

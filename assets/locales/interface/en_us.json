@@ -20,7 +20,7 @@
     "task.AeroSalvage.label": "🎈Aerial Salvage",
     "task.AeroSalvage.description": "Automatically deploys all balloons and keeps them balanced. Start the task from the Aerial Salvage screen.",
     "task.CameraAngleSweep.label": "🗺️Camera Angle Sweep",
-    "task.CameraAngleSweep.description": "Faces eight directions in place one by one (each with a random offset). After each short forward step, infers the position and orientation and saves the labeled screenshot.",
+    "task.CameraAngleSweep.description": "Faces twelve directions in place one by one (each with a random offset). After each short forward step, infers the position and orientation and saves the labeled screenshot.",
     "task.EnvironmentMonitoring.description": "Automatically complete environment monitoring tasks",
     "task.EnvironmentMonitoring.label": "🌿Environment Monitoring",
     "task.EnvironmentMonitoring.route.AncientTree.failed": "<span style=\"color: red; font-weight: bold;\">Ancient Tree task failed</span>",

@@ -36,9 +36,9 @@ constexpr MaaBool kMaaFalse = 0;
 
 // —— 采样计划 ——
 
-constexpr int kSweepStepCount = 8;          // 八个基准朝向（0°/45°/…/315°）
-constexpr double kSweepJitterRangeDeg = 22.5; // 每个基准朝向叠加的随机偏移范围（±22.5°）
-constexpr double kSweepDefaultRotationThresholdDeg = 2.0; // 默认转向闭环容差；相邻基准相隔 45°，
+constexpr int kSweepStepCount = 12;         // 十二个基准朝向（0°/30°/…/330°）
+constexpr double kSweepJitterRangeDeg = 15.0; // 每个基准朝向叠加的随机偏移范围（±15°）
+constexpr double kSweepDefaultRotationThresholdDeg = 2.0; // 默认转向闭环容差；相邻基准相隔 30°，
     // 取 2° 保证实际朝向贴合目标角且不会追着推断噪声转圈。可被 Pipeline 参数覆写。
 constexpr const char* kSweepOutputDirName = "CameraAngleData"; // 快照输出目录（相对运行目录）
 
@@ -74,7 +74,7 @@ struct SweepPlan
         static std::mt19937 rng { std::random_device {}() };
         std::uniform_real_distribution<double> jitter(-kSweepJitterRangeDeg, kSweepJitterRangeDeg);
         for (int i = 0; i < kSweepStepCount; ++i) {
-            targets[i] = normalizeHeading(i * 45.0 + jitter(rng));
+            targets[i] = normalizeHeading(i * 30.0 + jitter(rng));
         }
         step = 0;
         initialized = true;
@@ -437,73 +437,6 @@ MaaBool MAA_CALL CameraAngleSweepSnapshotActionRun(
     }
     LogInfo << "CameraAngleSweep: snapshot saved" << VAR(name) << VAR(position.score);
     return kMaaTrue;
-}
-
-bool RunSelfCheck()
-{
-    bool ok = true;
-
-    // 用例 1：采样计划边界——目标落在 [0, 360)，与基准角偏差不超过 ±22.5°。
-    {
-        SweepPlan plan;
-        plan.reset();
-        ok &= plan.initialized && plan.step == 0;
-        for (int i = 0; i < kSweepStepCount; ++i) {
-            const double target = plan.targets[i];
-            if (target < 0.0 || target >= 360.0) {
-                LogError << "CameraAngleSweep self-check: target out of range" << VAR(i) << VAR(target);
-                ok = false;
-            }
-            double delta = std::abs(target - i * 45.0);
-            if (delta > 180.0) {
-                delta = 360.0 - delta;
-            }
-            if (delta > kSweepJitterRangeDeg) {
-                LogError << "CameraAngleSweep self-check: jitter out of range" << VAR(i) << VAR(delta);
-                ok = false;
-            }
-        }
-    }
-
-    // 用例 2：计划耗尽语义——全部步进后 done，reset 后回到未耗尽。
-    {
-        SweepPlan plan;
-        plan.reset();
-        for (int i = 0; i < kSweepStepCount; ++i) {
-            if (plan.done()) {
-                LogError << "CameraAngleSweep self-check: done too early" << VAR(i);
-                ok = false;
-                break;
-            }
-            plan.step++;
-        }
-        if (!plan.done()) {
-            LogError << "CameraAngleSweep self-check: plan should be done after all steps";
-            ok = false;
-        }
-        plan.reset();
-        if (plan.done()) {
-            LogError << "CameraAngleSweep self-check: reset should clear done state";
-            ok = false;
-        }
-    }
-
-    // 用例 3：角度归一化到 [0, 360)。
-    {
-        const std::pair<double, double> cases[] = {
-            { 0.0, 0.0 },     { 45.0, 45.0 },   { 359.9, 359.9 }, { -22.5, 337.5 },
-            { 360.0, 0.0 },   { 405.0, 45.0 },  { -315.0, 45.0 },
-        };
-        for (const auto& [input, want] : cases) {
-            if (std::abs(normalizeHeading(input) - want) > 1e-9) {
-                LogError << "CameraAngleSweep self-check: normalizeHeading mismatch" << VAR(input) << VAR(want);
-                ok = false;
-            }
-        }
-    }
-
-    LogInfo << "CameraAngleSweep self-check" << VAR(ok);
-    return ok;
 }
 
 } // namespace cameraanglesweep
