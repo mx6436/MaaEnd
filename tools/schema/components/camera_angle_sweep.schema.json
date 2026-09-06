@@ -1,0 +1,30 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "CameraAngleSweepTowardActionParam": {
+            "type": "object",
+            "description": "Parameters for CameraAngleSweepTowardAction: closed-loop turn to the current sampling plan target orientation.",
+            "additionalProperties": false,
+            "properties": {
+                "rotation_threshold": {
+                    "title": "Rotation Threshold",
+                    "description": "Maximum allowed angle difference in degrees to treat the player as already facing the target orientation. Defaults to 2.",
+                    "type": "number"
+                }
+            }
+        },
+        "CameraAngleSweepStepRecognitionParam": {
+            "type": "object",
+            "description": "Parameters for CameraAngleSweepStepRecognition: reports the sampling plan state for loop branching.",
+            "additionalProperties": false,
+            "properties": {
+                "mode": {
+                    "title": "Mode",
+                    "description": "remaining hits while steps remain in the plan; done hits once the plan is exhausted.",
+                    "type": "string",
+                    "enum": ["remaining", "done"]
+                }
+            }
+        }
+    }
+}

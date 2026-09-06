@@ -269,7 +269,7 @@
         "tasks/BatchAddFriends.json",
         "tasks/BatchDeleteFriends.json",
         // group: other_menu
-        "tasks/MapDataSweep.json",
+        "tasks/CameraAngleSweep.json",
         "tasks/PullCountCalculator.json",
         "tasks/BakerEntry.json",
         "tasks/ReadAllWiki.json",

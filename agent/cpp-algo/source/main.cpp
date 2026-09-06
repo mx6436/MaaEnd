@@ -4,6 +4,7 @@
 #include <MaaAgentServer/MaaAgentServerAPI.h>
 #include <MaaToolkit/MaaToolkitAPI.h>
 
+#include "CameraAngleSweep/CameraAngleSweep.h"
 #include "Common/CrashHandler.h"
 #include "Common/ParentProcessWatcher.h"
 #include "Common/SystemMonitor.h"
@@ -37,6 +38,7 @@ int main(int argc, char** argv)
     common::StartParentProcessWatcher();
 
     Test();
+    cameraanglesweep::RunSelfCheck();
 
     // std::cout << "Hello, cpp-algo!" << std::endl;
 
@@ -51,6 +53,13 @@ int main(int argc, char** argv)
     essencegridscan::EssenceGrid essence_grid;
 
     MaaAgentServerRegisterCustomRecognition("MyReco1", ChildCustomRecognitionCallback, nullptr);
+    MaaAgentServerRegisterCustomAction("CameraAngleSweepInitAction", cameraanglesweep::CameraAngleSweepInitActionRun, nullptr);
+    MaaAgentServerRegisterCustomRecognition(
+        "CameraAngleSweepStepRecognition",
+        cameraanglesweep::CameraAngleSweepStepRecognitionRun,
+        nullptr);
+    MaaAgentServerRegisterCustomAction("CameraAngleSweepTowardAction", cameraanglesweep::CameraAngleSweepTowardActionRun, nullptr);
+    MaaAgentServerRegisterCustomAction("CameraAngleSweepSnapshotAction", cameraanglesweep::CameraAngleSweepSnapshotActionRun, nullptr);
     MaaAgentServerRegisterCustomRecognition("MapLocateRecognition", maplocator::MapLocateRecognitionRun, nullptr);
     MaaAgentServerRegisterCustomRecognition("MapLocateAssertLocation", maplocator::MapLocateAssertLocationRun, nullptr);
     MaaAgentServerRegisterCustomRecognition("MapNavmeshQuery", mapnavmesh::MapNavmeshQueryRun, nullptr);

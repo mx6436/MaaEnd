@@ -1,14 +1,14 @@
 {
     "task": [
         {
-            "name": "MapDataSweep",
-            "label": "$task.MapDataSweep.label",
-            "entry": "MapDataSweepMain",
-            "description": "$task.MapDataSweep.description",
+            "name": "CameraAngleSweep",
+            "label": "$task.CameraAngleSweep.label",
+            "entry": "CameraAngleSweepMain",
+            "description": "$task.CameraAngleSweep.description",
             "controller": [
                 "Linux-Gamescope",
                 "Linux-ScreenCast",
-                "Linux-Wlrotos",
+                "Linux-Wlroots",
                 "Win32-Front"
             ],
             "group": [

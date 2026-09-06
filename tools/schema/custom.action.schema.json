@@ -32,6 +32,9 @@
                 "BatchAddFriendsUIDOnAddAction",
                 "BatchAddFriendsUIDOnEmptyAction",
                 "BetterSliding",
+                "CameraAngleSweepInitAction",
+                "CameraAngleSweepSnapshotAction",
+                "CameraAngleSweepTowardAction",
                 "CameraScanAction",
                 "CharacterControllerForwardAxisAction",
                 "CharacterControllerPitchDeltaAction",
@@ -247,6 +250,21 @@
 					"custom_action_param": { "$ref": "./components/outpost_trading.schema.json#/$defs/PrioritySessionParam" }
 				},
 				"required": [ "custom_action_param" ]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"custom_action": { "const": "CameraAngleSweepTowardAction" }
+				},
+				"required": [ "custom_action" ]
+			},
+			"then": {
+				"properties": {
+					"custom_action_param": {
+						"$ref": "./components/camera_angle_sweep.schema.json#/$defs/CameraAngleSweepTowardActionParam"
+					}
+				}
 			}
 		},
 		{
