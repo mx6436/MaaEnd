@@ -95,6 +95,35 @@ endif()
 
 add_dependencies(cpp-algo MaaUtils)
 
+# 本地工作台：静态截图批量定位 CLI，不依赖 MaaFramework，也不进入发布包。
+set(map_locate_cli_core_src
+    MapLocator/MapAlgorithm.cpp
+    MapLocator/MapLocator.cpp
+    MapLocator/MatchStrategy.cpp
+    MapLocator/MotionTracker.cpp
+    MapLocator/YoloPredictor.cpp
+    MapLocator/CameraOrientationPredictor.cpp
+    MapLocator/MapLocateCli.cpp
+)
+list(TRANSFORM map_locate_cli_core_src PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+
+add_executable(map-locate ${map_locate_cli_core_src})
+target_include_directories(map-locate
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${MAA_PRIVATE_INC} ${MAA_PUBLIC_INC})
+target_link_libraries(map-locate
+    PRIVATE MaaUtils Boost::system ${OpenCV_LIBS} ONNXRuntime::ONNXRuntime ZLIB::ZLIB)
+add_dependencies(map-locate MaaUtils)
+
+if(LINUX)
+    target_link_libraries(map-locate PRIVATE pthread dl)
+endif()
+
+# 发布布局：二进制在 bin/、依赖库在 lib/；本地目录按同样布局摆放。
+set_target_properties(map-locate PROPERTIES
+    BUILD_RPATH "$ORIGIN/../lib"
+    INSTALL_RPATH "$ORIGIN/../lib"
+)
+
 if(MAAEND_BUILD_ICON_RECOGNITION_TESTS)
     add_subdirectory(IconRecognition/test)
 endif()
