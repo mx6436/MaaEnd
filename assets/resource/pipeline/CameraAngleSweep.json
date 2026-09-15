@@ -45,17 +45,65 @@
         "post_delay": 0,
         "rate_limit": 0,
         "next": [
-            "CameraAngleSweepMoveForward"
+            "CameraAngleSweepForwardPulse1"
         ]
     },
-    "CameraAngleSweepMoveForward": {
-        "desc": "按 W 前进 200ms",
+    // 前进手势：4 次「按下 W 10ms → 松开 40ms」脉冲，随后按住 W 持续前进，
+    // 采样结束后松开（CameraAngleSweepForwardRelease）。
+    // 脉冲与间隔由手势本身决定，不是等待画面稳定的延迟。
+    "CameraAngleSweepForwardPulse1": {
+        "desc": "前进脉冲 1/4：按下 W 10ms",
         "pre_delay": 0,
-        "action": "Custom",
-        "custom_action": "CharacterControllerForwardAxisAction",
-        "custom_action_param": {
-            "axis": 2
-        },
+        "action": "LongPressKey",
+        "duration": 10,
+        "key": 87, // W
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "CameraAngleSweepForwardPulse2"
+        ]
+    },
+    "CameraAngleSweepForwardPulse2": {
+        "desc": "前进脉冲 2/4：松开 40ms 后按下 W 10ms",
+        "pre_delay": 40,
+        "action": "LongPressKey",
+        "duration": 10,
+        "key": 87, // W
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "CameraAngleSweepForwardPulse3"
+        ]
+    },
+    "CameraAngleSweepForwardPulse3": {
+        "desc": "前进脉冲 3/4：松开 40ms 后按下 W 10ms",
+        "pre_delay": 40,
+        "action": "LongPressKey",
+        "duration": 10,
+        "key": 87, // W
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "CameraAngleSweepForwardPulse4"
+        ]
+    },
+    "CameraAngleSweepForwardPulse4": {
+        "desc": "前进脉冲 4/4：松开 40ms 后按下 W 10ms",
+        "pre_delay": 40,
+        "action": "LongPressKey",
+        "duration": 10,
+        "key": 87, // W
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
+            "CameraAngleSweepForwardHold"
+        ]
+    },
+    "CameraAngleSweepForwardHold": {
+        "desc": "松开 40ms 后按住 W 持续前进，由 Release 节点松开",
+        "pre_delay": 40,
+        "action": "KeyDown",
+        "key": 87, // W
         "post_delay": 0,
         "rate_limit": 0,
         "next": [
@@ -63,8 +111,8 @@
         ]
     },
     "CameraAngleSweepWaitBeforeSnapshot": {
-        "desc": "移动完成后等待 500ms 再采样",
-        "pre_delay": 500,
+        "desc": "按住前进 250ms 后再采样",
+        "pre_delay": 250,
         "post_delay": 0,
         "rate_limit": 0,
         "next": [
@@ -79,9 +127,31 @@
         "post_delay": 0,
         "rate_limit": 0,
         "next": [
+            "CameraAngleSweepForwardRelease"
+        ],
+        "on_error": [
+            "CameraAngleSweepForwardReleaseAbort"
+        ]
+    },
+    "CameraAngleSweepForwardRelease": {
+        "desc": "采样完成，松开 W",
+        "pre_delay": 0,
+        "action": "KeyUp",
+        "key": 87, // W
+        "post_delay": 0,
+        "rate_limit": 0,
+        "next": [
             "CameraAngleSweepStep",
             "CameraAngleSweepEnd"
         ]
+    },
+    "CameraAngleSweepForwardReleaseAbort": {
+        "desc": "采样失败兜底：松开 W 后结束环扫，避免前进按键滞留",
+        "pre_delay": 0,
+        "action": "KeyUp",
+        "key": 87, // W
+        "post_delay": 0,
+        "rate_limit": 0
     },
     "CameraAngleSweepEnd": {
         "desc": "环扫全部完成",
