@@ -454,7 +454,7 @@ StageResult ZiplineRideMachine::TickAiming(const ZiplineObservation& obs, IZipli
         prev_heading_.reset();
         return {};
     }
-    const double heading = obs.fix->angle;
+    const double heading = obs.fix->ControlHeading();
     const bool agrees = prev_heading_ && std::abs(NaviMath::NormalizeAngle(heading - *prev_heading_)) <= kHeadingStableReadToleranceDeg;
     stable_heading_hits_ = agrees ? stable_heading_hits_ + 1 : 1;
     prev_heading_ = heading;

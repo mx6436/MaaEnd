@@ -294,7 +294,7 @@ Result ConsumeHeadingNodesImpl(const Context& ctx)
             }
         }
 
-        const double start_heading = NaviMath::NormalizeAngle(ctx.position->angle);
+        const double start_heading = NaviMath::NormalizeAngle(ctx.position->ControlHeading());
         const double heading_delta = NaviMath::NormalizeAngle(target_heading - start_heading);
 
         ctx.motion_controller->SetForwardState(false);
@@ -364,7 +364,7 @@ bool CaptureStableHeadingImpl(const Context& ctx, double* out_heading, const Can
             || ctx.position_provider->LastCaptureWasHeld()) {
             continue;
         }
-        const double current = NaviMath::NormalizeAngle(ctx.position->angle);
+        const double current = NaviMath::NormalizeAngle(ctx.position->ControlHeading());
         if (previous && std::abs(NaviMath::NormalizeAngle(current - *previous)) <= kHeadingStableReadToleranceDeg) {
             *out_heading = current;
             return true;
@@ -522,7 +522,7 @@ bool SettleAtStrictGoal(const Context& ctx, const Waypoint& waypoint)
         }
 
         const double bearing = NaviMath::CalcTargetRotation(fix.x, fix.y, waypoint.x, waypoint.y);
-        const double from_heading = heading ? *heading : NaviMath::NormalizeHeading(fix.angle);
+        const double from_heading = heading ? *heading : NaviMath::NormalizeHeading(fix.ControlHeading());
         // Sized by what is left, floored at the stationary latch: a shorter step cannot be told apart from not having
         // moved, so it would also destroy the only test for a step that is being blocked.
         const double step_wu = std::max(residual, kStrictSettleMinStepWu);

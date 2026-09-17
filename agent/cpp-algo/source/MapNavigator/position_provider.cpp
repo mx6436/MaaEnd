@@ -107,9 +107,13 @@ bool PositionProvider::Capture(
     const int status = static_cast<int>(locate_result.status);
     if (locate_result.position) {
         const auto& position = *locate_result.position;
+        // 镜头朝向由相机朝向模型给出, 与角色箭头无关; 模型不可用或本帧推不出时这帧没有读数。
+        const bool has_camera_angle = locate_result.camRot.has_value();
+        const double camera_angle = has_camera_angle ? locate_result.camRot->rot : 0.0;
+        const double camera_confidence = has_camera_angle ? locate_result.camRot->confidence : 0.0;
         LogInfo << "MapLocator" << VAR(status) << VAR(locate_result.debugMessage) << VAR(position.zoneId) << VAR(position.x)
                 << VAR(position.y) << VAR(position.score) << VAR(position.sliceIndex) << VAR(position.angle) << VAR(position.latencyMs)
-                << VAR(position.isHeld);
+                << VAR(position.isHeld) << VAR(has_camera_angle) << VAR(camera_angle) << VAR(camera_confidence);
     }
     else {
         LogInfo << "MapLocator" << VAR(status) << VAR(locate_result.debugMessage) << "position=null";
@@ -130,6 +134,7 @@ bool PositionProvider::Capture(
     out_pos->x = locate_result.position->x;
     out_pos->y = locate_result.position->y;
     out_pos->angle = locate_result.position->angle;
+    out_pos->camera_angle = locate_result.camRot ? std::optional<double>(locate_result.camRot->rot) : std::nullopt;
     out_pos->score = locate_result.position->score;
     out_pos->zone_id = locate_result.position->zoneId;
     out_pos->valid = true;

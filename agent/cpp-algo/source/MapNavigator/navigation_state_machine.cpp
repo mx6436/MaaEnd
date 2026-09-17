@@ -646,7 +646,7 @@ bool NavigationStateMachine::ArmRiverFallRecoveryIfBlackScreenLoss(const char* v
     runtime_state_.river_fall.pending = true;
     runtime_state_.river_fall.anchor_pos = *position_;
     // Arm-time facing, logged so a post-mortem can tell it apart from the settled read the about-face actually uses.
-    runtime_state_.river_fall.water_heading = NaviMath::NormalizeAngle(position_->angle);
+    runtime_state_.river_fall.water_heading = NaviMath::NormalizeAngle(position_->ControlHeading());
     // River-fall owns the recovery: the pre-fall dynamic-recovery anchor is stale after the teleport, and a live
     // recovery's escaped-obstacle check (runs before the river-fall block) would otherwise pre-empt the escape.
     runtime_state_.recovery.Reset();
@@ -1140,7 +1140,7 @@ bool NavigationStateMachine::ExecutePhysicalUnstick(double stuck_heading)
     }
 
     const double target_heading = NaviMath::CalcTargetRotation(position_->x, position_->y, target->x, target->y);
-    const double heading_delta = NaviMath::CalcDeltaRotation(position_->angle, target_heading);
+    const double heading_delta = NaviMath::CalcDeltaRotation(position_->ControlHeading(), target_heading);
     motion_controller_->SetForwardState(false);
     utils::SleepFor(kStopWaitMs);
     int units = static_cast<int>(std::lround(heading_delta * action_wrapper_->DefaultTurnUnitsPerDegree()));
@@ -1296,7 +1296,8 @@ bool NavigationStateMachine::TickNavigate()
     const bool startup_grace_elapsed =
         runtime_state_.flow.navigate_started_at.time_since_epoch().count() > 0
         && std::chrono::duration_cast<std::chrono::milliseconds>(now - runtime_state_.flow.navigate_started_at).count() >= 3000;
-    const double current_heading = NaviMath::NormalizeAngle(position_->angle);
+    // 朝向控制一律读镜头朝向, 见 NaviPosition::ControlHeading(): 转向只作用在镜头上。
+    const double current_heading = NaviMath::NormalizeAngle(position_->ControlHeading());
     const bool degraded_fix =
         position_provider_->LastCaptureWasHeld() || position_provider_->LastCaptureWasBlackScreen() || !position_->valid;
     // Gap between the screencap this tick's fix came from and the decision below: the locate itself plus the work

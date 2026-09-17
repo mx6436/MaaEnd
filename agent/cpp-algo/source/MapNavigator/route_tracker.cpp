@@ -82,8 +82,8 @@ std::optional<SegmentProjection>
     projection.cross_track_distance = std::hypot(position.x - projected_x, position.y - projected_y);
     projection.current_distance = std::hypot(from.x - position.x, from.y - position.y);
     projection.next_distance = std::hypot(to.x - position.x, to.y - position.y);
-    projection.turn_back_yaw =
-        std::abs(NaviMath::NormalizeAngle(NaviMath::CalcTargetRotation(position.x, position.y, from.x, from.y) - position.angle));
+    projection.turn_back_yaw = std::abs(
+        NaviMath::NormalizeAngle(NaviMath::CalcTargetRotation(position.x, position.y, from.x, from.y) - position.ControlHeading()));
     return projection;
 }
 
