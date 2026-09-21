@@ -429,8 +429,13 @@ FodyWeavers.xsd
 # Local History for Visual Studio Code
 .history/
 
+# Nix development environment
+.direnv/
+.nix/
+
 # Coding Agents
 .claude/*
+
 .sisyphus/
 .workbuddy*/
 

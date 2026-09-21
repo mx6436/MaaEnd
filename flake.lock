@@ -1,0 +1,65 @@
+{
+  "nodes": {
+    "maaUtils": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788762475,
+        "narHash": "sha256-g6FoqD3EBldHwgULILmxxR9rJajBP5fm6YJynUA8TFY=",
+        "owner": "MaaXYZ",
+        "repo": "MaaUtils",
+        "rev": "6e9ba33f6ad835418097d9324c01c44a82825a2b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "MaaXYZ",
+        "repo": "MaaUtils",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1789844176,
+        "narHash": "sha256-COQmpo4lFIzMgUjr3ntDpjH0NwrCnf7N0uhR+6WPGP8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "79b35bf0bda5cd110f856aa5b5b2c5ba4460dbf5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nur-packages": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790014876,
+        "narHash": "sha256-7gZLxnszb+cc1xWeePLou2xWoyJDacIYprlVDjwfUA0=",
+        "owner": "mx6436",
+        "repo": "nur-packages",
+        "rev": "ee29ce5088463b82eaed2fff269cb6ef89727466",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mx6436",
+        "repo": "nur-packages",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "maaUtils": "maaUtils",
+        "nixpkgs": "nixpkgs",
+        "nur-packages": "nur-packages"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
