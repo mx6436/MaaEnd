@@ -58,6 +58,7 @@ target_link_libraries(grid-tracker PUBLIC recogrid)
 
 file(GLOB_RECURSE cpp_algo_src CONFIGURE_DEPENDS *.h *.hpp *.cpp)
 list(FILTER cpp_algo_src EXCLUDE REGEX "/IconRecognition/test/")
+list(FILTER cpp_algo_src EXCLUDE REGEX "/MapLocator/MapLocateCli\\.cpp$")
 list(REMOVE_ITEM cpp_algo_src ${icon_recognition_core_src} ${recogrid_src} ${grid_tracker_src})
 
 add_executable(cpp-algo ${cpp_algo_src} ${cpp_algo_header})

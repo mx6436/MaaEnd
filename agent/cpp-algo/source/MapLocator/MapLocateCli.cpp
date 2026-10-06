@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     LocateOptions options;
     options.force_global_search = true;
 
-    auto apply_result = [](const LocateResult& res, ImageResult* result) {
+    auto apply_result = [](const LocateResult& res, const LocateOptions& locate_options, ImageResult* result) {
         result->status = static_cast<int>(res.status);
         result->message = res.debugMessage;
         if (res.status == LocateStatus::Success && res.position.has_value()) {
@@ -170,7 +170,8 @@ int main(int argc, char** argv)
             result->rot = pos.angle;
             result->scale = ZoneTemplateScale(pos.zoneId);
             result->locConf = pos.score;
-            result->isHeld = pos.isHeld;
+            // 主线不再携带 isHeld；兼容字段标记未达到本次定位阈值的结果。
+            result->isHeld = pos.score < locate_options.loc_threshold;
             result->latencyMs = pos.latencyMs;
         }
     };
@@ -196,14 +197,14 @@ int main(int argc, char** argv)
             LocateOptions stream_options;
             stream_options.force_global_search = false;
             result.attempts = 1;
-            apply_result(locator.locate(minimap, stream_options), &result);
+            apply_result(locator.locate(minimap, stream_options), stream_options, &result);
         }
         else {
             locator.resetTrackingState();
             for (int attempt = 1; attempt <= max_attempts; ++attempt) {
                 result.attempts = attempt;
                 const LocateResult res = locator.locate(minimap, options);
-                apply_result(res, &result);
+                apply_result(res, options, &result);
                 if (res.status == LocateStatus::Success && res.position.has_value()) {
                     break;
                 }
