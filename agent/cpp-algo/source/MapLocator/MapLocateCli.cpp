@@ -16,7 +16,7 @@
 //   <dir>/model/map/cls.onnx (+ cls.json, tile_mapping.json)
 //
 // 无位置参数时从 stdin 逐行读取图片路径；每张图向输出写一行 JSON：
-//   name, status, message, zone, x, y, rot, scale, locConf, isHeld, latencyMs, attempts, elapsedMs
+//   name, status, message, zone, x, y, rot, scale, locConf, latencyMs, attempts, elapsedMs
 // scale 为 zone 的 ZoneTemplateScale（底图与观测的像素尺度比，无缩放 zone 为 1.0），
 // 供训练/实机侧消费定位记录，避免在消费方镜像 zone -> scale 表。定位失败时无 zone，
 // scale 恒为 1.0（不参与消费）。
@@ -62,12 +62,11 @@ struct ImageResult
     double rot = 0.0;
     double scale = 1.0;
     double locConf = 0.0;
-    bool isHeld = false;
     long long latencyMs = 0;
     int attempts = 0;
     long long elapsedMs = 0;
 
-    MEO_JSONIZATION(name, status, message, zone, x, y, rot, scale, locConf, isHeld, latencyMs, attempts, elapsedMs)
+    MEO_JSONIZATION(name, status, message, zone, x, y, rot, scale, locConf, latencyMs, attempts, elapsedMs)
 };
 
 void PrintUsage(const char* argv0)
@@ -159,7 +158,7 @@ int main(int argc, char** argv)
     LocateOptions options;
     options.force_global_search = true;
 
-    auto apply_result = [](const LocateResult& res, const LocateOptions& locate_options, ImageResult* result) {
+    auto apply_result = [](const LocateResult& res, ImageResult* result) {
         result->status = static_cast<int>(res.status);
         result->message = res.debugMessage;
         if (res.status == LocateStatus::Success && res.position.has_value()) {
@@ -170,8 +169,6 @@ int main(int argc, char** argv)
             result->rot = pos.angle;
             result->scale = ZoneTemplateScale(pos.zoneId);
             result->locConf = pos.score;
-            // 主线不再携带 isHeld；兼容字段标记未达到本次定位阈值的结果。
-            result->isHeld = pos.score < locate_options.loc_threshold;
             result->latencyMs = pos.latencyMs;
         }
     };
@@ -197,14 +194,14 @@ int main(int argc, char** argv)
             LocateOptions stream_options;
             stream_options.force_global_search = false;
             result.attempts = 1;
-            apply_result(locator.locate(minimap, stream_options), stream_options, &result);
+            apply_result(locator.locate(minimap, stream_options), &result);
         }
         else {
             locator.resetTrackingState();
             for (int attempt = 1; attempt <= max_attempts; ++attempt) {
                 result.attempts = attempt;
                 const LocateResult res = locator.locate(minimap, options);
-                apply_result(res, options, &result);
+                apply_result(res, &result);
                 if (res.status == LocateStatus::Success && res.position.has_value()) {
                     break;
                 }
